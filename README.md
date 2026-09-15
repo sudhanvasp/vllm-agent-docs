@@ -14,6 +14,30 @@ code) remains under the [MIT license](LICENSE) below.
 
 Disclosure: Skated along with Claude Sonnet 5
 
+
+What did you accomplish?
+Migrated 12 scoped pages of vLLM's OpenAI-serving docs (Apache-2.0) onto Thally, replacing all starter boilerplate quickstart, a showcase "serve an OpenAI-compatible endpoint" guide, troubleshooting, a generated changelog, a scoped OpenAPI reference, engine/server args, supported models, quantization, distributed serving, Docker/K8s, and FAQ. Pushed to GitHub and connected to Thally Cloud on a custom domain, with an agent-readiness fix applied and verified along the way.
+
+When did Thally first become useful?
+Running npm run check:agents and getting back a numeric score with per-signal subscores and a named offender (/faq  no headings) instead of generic "improve your docs" advice. That's the moment it stopped feeling like a docs template and started acting like a linter for agent-readiness - fix the thing it named, rerun, confirm the number moved.
+
+What took more manual work than expected?
+The custom domain hosting could be eased out further I believe.  
+
+What result did you trust least?
+The agent-readiness score jump itself (99 → 100). A single number summarizing "is this agent-ready" is easy to satisfy
+on paper (add a heading) without confirming
+
+How did you verify that result?
+Didn't take the score's word for it  independently curl'd every surface the showcase page claims to support (HTML, .md, the JSON API, embedded JSON-LD, /llms.tistered a real local MCP server, calledtools/list and read_page over JSON-RPC, and diffed what came back against the Markdown mirror by hand. Also ran thally
+check --drift, which independently caught a n't been looking for  a better trust signal than the score alone.
+
+Would you use Thally for your next real release? Why or why not?
+Yes, conditionally. The core value  one MDXly to HTML, Markdown, JSON, JSON-LD, search,and MCP with no extra plumbing  genuinely worked and removes a whole class of "the docs bot's answer drifted fromdocs page" bugs. The caveats are real, thoug a rough edge, and the readiness score is afast lint, not a substitute for someone (or some agent) actually trying to use the docs, which is what caught the things the score missed.
+
+Leveraged Claude Sonnet 5 to speed things along.  
+
+
 ## Agent readiness
 
 `npm run check:agents` runs this site's `/api/agent-readiness` scan locally
