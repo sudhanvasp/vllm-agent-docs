@@ -12,6 +12,8 @@ documentation, which is licensed [Apache-2.0](https://github.com/vllm-project/vl
 by the vLLM project. This repository's own scaffolding (the Thally starter
 code) remains under the [MIT license](LICENSE) below.
 
+Disclosure: Skated along with Claude Sonnet 5
+
 ## Agent readiness
 
 `npm run check:agents` runs this site's `/api/agent-readiness` scan locally
