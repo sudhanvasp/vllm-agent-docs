@@ -1,0 +1,78 @@
+---
+title: Changelog
+description: What changed in vLLM releases, generated from vllm-project/vllm's GitHub releases.
+---
+
+<Note type="info" title="Generated page">
+  Entries below are generated from [vLLM's GitHub releases](https://github.com/vllm-project/vllm/releases)
+  by `scripts/generate-changelog.mts`, not hand-written. Re-run
+  `npm run changelog:build` to refresh. This mirrors the release notes vLLM
+  publishes for its own project — this site's own changes aren't tracked here.
+</Note>
+
+## v0.29.0 — 2026-09-09
+
+- Model Runner V2 is now the default for all models, completing the rollout that began with pooling models.
+- New models: Hy4-preview, Tencent's 770B/49B-active MoE with Gated DeepSeek Sparse Attention and native MTP; Qwen3.8-Flash-Next with BF16/FP8/NVFP4 and MTP; GraniteSWA and GraniteMoeSWA; NemotronH_Omni_Reasoning_V3 with…
+- Kimi-K3 and DeepSeek V4 performance: fused MXFP4 top-k finalization in the K3 latent tail (about 5% E2E latency, #53152), K3 Mamba metadata preparation in one Triton launch (6.6-7.6x kernel speedup, #52388), tuned…
+- Speculative decoding: per-request acceptance stats in OpenAI API responses via --per-request-spec-decode-metrics, adaptive verification extended to logprobs, SM100 sparse MLA for GLM-5.2 and DeepSeek V4 on SM90,…
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.29.0)
+
+## v0.28.0 — 2026-08-26
+
+- Kimi-K3 performance push: a major optimization effort for Kimi-K3 across the stack — Decode Context Parallel (DCP) support, fused FlashKDA decode and prefill kernels, SiTU activation support for MegaMoE, GEMM-RS for…
+- DeepSeek V4: sparse MLA now works end-to-end for plain decode, MTP, and DSpark speculative decoding, joined by AMD Quark NVFP4 support, reasoning-effort prompts and mappings, sparse top-k metadata kernel optimizations,…
+- Speculative decoding advances: DFlash2 with local convolution and a candidate selector, DSpark confidence-scheduled verification, and async scheduling auto-enabled for draft models.
+- Model Runner V2 maturation: E/P/D disaggregation, weight offloading, multi-layer MTP KV cache support, encoder CUDA graphs, decoder token-wise pooling plus Transformers pooling models, attention-free models, and…
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.28.0)
+
+## v0.27.1 — 2026-08-11
+
+- See the full release notes for what changed.
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.27.1)
+
+## v0.27.0 — 2026-08-10
+
+- Kimi K3 support with a full stack landing in one release: core model files and kernels, Python and Rust frontends, AttnRes kernels, DeepGEMM support, compressed-tensors quantized checkpoints, DSpark AR fusion, and an…
+- More new models: Qwen3.5 text-only dense and MoE models with EVS video token pruning, K-EXAONE-2.0-750B-A37B, VaultGemma via the Transformers modeling backend, and jina-embeddings-v5-text-nano.
+- PyTorch 2.13.0 upgrade along with torchvision 0.28.0 and Triton 3.7.1 — this is a breaking environment change; XPU and CPU followed to torch 2.13 as well.
+- FlashAttention 4 integration deepens on SM100: FP8 KV cache support and headdim-256 support, backed by a new JIT warmup infrastructure and runner-owned Triton kernel warmup that remove first-request compilation stalls.
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.27.0)
+
+## v0.26.0 — 2026-07-27
+
+- New Inkling model family with a full support stack: base modeling, piecewise CUDA graph support, Hopper FA4 relative attention, MTP=1 speculative decoding, LoRA, and standard ModelOpt NVFP4 quantization.
+- DeepSeek-V4 performance push across vendors: a specialized routing kernel (2.94% E2E TPOT, #48660), fused_topk_bias (1.5–2x kernel, #47463), and redundant repeat/copy removal (1.8% E2E TPOT, #48137), plus ROCm two-stage…
+- fp32 lm_head for generation models via head_dtype, extended to the LoRA path and given a ROCm torch.mm fast path, improving accuracy for generation heads.
+- Flexible attention backends: the attention backend can now be selected per KV-cache group, and sliding-window support is now an explicit backend capability — improving support for hybrid models.
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.26.0)
+
+## v0.25.1 — 2026-07-14
+
+- Avoid blocking model launching when no system FFmpeg is available for TorchCodec.
+- Guard mixed-dtype allreduce RMSNorm quant fusions.
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.25.1)
+
+## v0.25.0 — 2026-07-11
+
+- Model Runner V2 is now the default for all dense models.
+- PagedAttention has been removed.
+- The Transformers modeling backend is now as fast as native vLLM, and gained FP8 MoE support, CUDA graph + embed scaling fixes, and migration of GPTBigCode/Starcoder2 and RoBERTa.
+- New models: LLaVA-OneVision-2, Unlimited OCR, MOSS-Transcribe-Diarize, openai/privacy-filter, and Hy3.
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.25.0)
+
+## v0.24.0 — 2026-06-29
+
+- MiniMax-M3: Added support for the new MiniMax-M3 model, with a fast follow-on of BF16/FP8 indexer via MSA, MXFP4 support, FP8 sparse GQA, and extensive AMD/ROCm tuning — mxfp8 MoE/linear on gfx950, fp8_per_channel for…
+- DeepSeek-V4 keeps maturing: Following its debut, DeepSeek-V4 received another large optimization pass — a FlashInfer sparse index cache (2–4% TTFT), prefill chunk-planning optimization (4% E2E throughput), a…
+- Model Runner V2 (MRv2) continues to expand: MRv2 now supports quantized models by default, enables GraniteMoE by default, and gained migration of Qwen + DeepSeek-V2 MoE models, DFlash speculative decoding, and more…
+- Streaming Parser Engine: A new streaming parser engine unifies tool-call/reasoning parsing across models, with parsers for Qwen3, MiniMax-M2, GLM-4.7/5.1/5.2, and Nemotron V3.
+
+[Full release notes on GitHub](https://github.com/vllm-project/vllm/releases/tag/v0.24.0)

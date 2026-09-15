@@ -1,0 +1,153 @@
+---
+title: Serve an OpenAI-compatible endpoint
+navTitle: Serve an OpenAI endpoint
+description: Stand up vLLM's OpenAI-compatible server and call it with curl and the official OpenAI Python client.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Quickstart guide](https://docs.vllm.ai/en/latest/getting_started/quickstart.html)
+  and [OpenAI-Compatible Server reference](https://docs.vllm.ai/en/latest/serving/online_serving/openai_compatible_server/) (Apache-2.0).
+</Note>
+
+<Tip>
+  This is the showcase page for this site: it's verified end-to-end across
+  HTML, Markdown (`.md`), JSON, JSON-LD, search, the agent discovery index,
+  and the MCP server. See [Agent readiness](#agent-readiness) below.
+</Tip>
+
+`vllm serve` starts an HTTP server that implements OpenAI's Completions API,
+Chat Completions API, Embeddings API, and more. Because it matches OpenAI's
+wire format, you can point the official `openai` client — or any tool built
+against it — at your own server by changing only the `base_url`.
+
+## Before you begin
+
+- vLLM installed (see [Quickstart](/quickstart))
+- A model you can serve locally, such as `Qwen/Qwen2.5-1.5B-Instruct`
+
+<Steps>
+  <Step title="Start the server">
+    ```bash
+    vllm serve Qwen/Qwen2.5-1.5B-Instruct
+    ```
+
+    By default the server listens on `http://localhost:8000`. Pass `--host`
+    and `--port` to change that, or `--api-key <key>` to require bearer-token
+    auth on every request.
+  </Step>
+  <Step title="Call the Chat Completions endpoint with curl">
+    ```bash
+    curl http://localhost:8000/v1/chat/completions \
+        -H "Content-Type: application/json" \
+        -d '{
+            "model": "Qwen/Qwen2.5-1.5B-Instruct",
+            "messages": [
+                {"role": "system", "content": "You are helpful."},
+                {"role": "user", "content": "Who won the 2020 World Series?"}
+            ]
+        }'
+    ```
+  </Step>
+  <Step title="Call it with the OpenAI Python client">
+    Install the client (`pip install openai`) and point it at your server.
+    The API key is required by the client library but ignored by vLLM unless
+    you started the server with `--api-key`:
+
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI(api_key="EMPTY", base_url="http://localhost:8000/v1")
+
+    chat_response = client.chat.completions.create(
+        model="Qwen/Qwen2.5-1.5B-Instruct",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Tell me a joke."},
+        ],
+    )
+    print("Chat response:", chat_response)
+    ```
+  </Step>
+  <Step title="Verify the result">
+    Both calls return a standard OpenAI chat-completion object with a
+    `choices[0].message.content` field. If the client raises a connection
+    error, confirm the server finished loading the model — the terminal
+    running `vllm serve` prints `Uvicorn running on http://0.0.0.0:8000` once
+    it's ready.
+  </Step>
+</Steps>
+
+## The legacy Completions endpoint still works
+
+For prompt-completion (rather than chat) workloads, the same server also
+implements `/v1/completions`:
+
+```bash
+curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="EMPTY", base_url="http://localhost:8000/v1")
+
+completion = client.completions.create(
+    model="Qwen/Qwen2.5-1.5B-Instruct",
+    prompt="San Francisco is a",
+)
+print("Completion result:", completion)
+```
+
+## What else is compatible
+
+The same server also exposes `/v1/embeddings`, `/v1/score`,
+`/v1/audio/transcriptions`, `/v1/audio/translations`, `/tokenize`,
+`/detokenize`, and a realtime WebSocket endpoint, all under the same
+authentication model. See the [API reference](/api) for the full set backed
+by this site's `openapi.yaml`.
+
+## Agent readiness
+
+This guide is the one page on this site verified across every required
+surface for agent consumption:
+
+<CardGroup cols="2">
+  <Card title="HTML">
+    The page you're reading now, rendered for a browser.
+  </Card>
+  <Card title="Markdown" href="/guides/serve-openai-endpoint.md">
+    Append `.md` to this page's URL for a plain-text mirror an agent can fetch
+    directly.
+  </Card>
+  <Card title="Agent discovery">
+    Listed in [`/llms.txt`](/llms.txt), [`/ai.txt`](/ai.txt), and
+    [`/api/docs-index`](/api/docs-index).
+  </Card>
+  <Card title="Structured data (JSON / JSON-LD)">
+    Available via [`/api/docs/guides/serve-openai-endpoint`](/api/docs/guides/serve-openai-endpoint)
+    and embedded `<script type="application/ld+json">` on this page.
+  </Card>
+  <Card title="Search">
+    Indexed in this site's on-page search — try searching "OpenAI-compatible".
+  </Card>
+  <Card title="MCP">
+    Readable by any MCP client connected to this site's `/api/mcp` endpoint —
+    see below.
+  </Card>
+</CardGroup>
+
+Test the MCP surface locally:
+
+```bash
+claude mcp add --transport http vllm-agent-docs http://localhost:3040/api/mcp
+```
+
+Then ask your MCP-connected agent to fetch this page — it should return the
+same content as the Markdown mirror above.

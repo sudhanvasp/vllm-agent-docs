@@ -1,0 +1,67 @@
+---
+title: API overview
+navTitle: Overview
+description: What this reference covers, and how to run every request against your own vllm serve instance.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [OpenAI-Compatible Server reference](https://docs.vllm.ai/en/latest/serving/online_serving/openai_compatible_server/) (Apache-2.0).
+</Note>
+
+This reference documents the core HTTP endpoints exposed by `vllm serve` —
+vLLM's OpenAI-compatible server. It's a scoped subset of vLLM's documented
+API surface (chat completions, completions, embeddings, and models); vLLM
+also exposes audio, scoring, tokenization, and realtime endpoints not
+covered here. See [`openapi.yaml`](https://github.com/vllm-project/vllm/blob/main/vllm/entrypoints/openai/api_server.py)
+in the vLLM repository for the complete, version-exact surface.
+
+## Base URL
+
+Every request in this reference runs against your own server, not a shared
+demo — vLLM has no public hosted endpoint. Start one first (see
+[Quickstart](/quickstart)):
+
+```bash
+vllm serve Qwen/Qwen2.5-1.5B-Instruct
+```
+
+```text
+http://localhost:8000
+```
+
+## Try your first request
+
+<Steps>
+  <Step title="Start a local server">
+    Follow [Quickstart](/quickstart) if you haven't already — you need a
+    running `vllm serve` process for the **Send** button below to reach
+    anything.
+  </Step>
+  <Step title="Open an endpoint">
+    Pick **Create a chat completion** from the Chat group in the sidebar.
+  </Step>
+  <Step title="Send it">
+    Fill in `model` with the model you're serving (for example
+    `Qwen/Qwen2.5-1.5B-Instruct`) and press **Send**.
+  </Step>
+  <Step title="Check auth, if you enabled it">
+    If you started the server with `--api-key`, add
+    `Authorization: Bearer <key>`. Without `--api-key`, no auth is required.
+  </Step>
+</Steps>
+
+## Regenerate this reference from a live server
+
+This file was hand-authored from vLLM's documented endpoint set, scoped to
+what [Serve an OpenAI-compatible endpoint](/guides/serve-openai-endpoint)
+covers. For the complete, exact spec of your installed vLLM version, pull it
+live from a running server and replace `openapi.yaml` at the repository
+root:
+
+```bash
+vllm serve Qwen/Qwen2.5-1.5B-Instruct &
+curl http://localhost:8000/openapi.json -o openapi.yaml
+```
+
+The endpoint pages, navigation, and playground regenerate from that file on
+the next publish.

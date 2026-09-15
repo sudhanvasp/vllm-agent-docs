@@ -1,0 +1,90 @@
+---
+title: Introduction
+description: An unofficial, agent-ready mirror of vLLM's serving documentation, migrated from docs.vllm.ai.
+mode: home
+---
+
+<Hero
+  title="vLLM Agent Docs"
+  subtitle="A focused, agent-ready mirror of vLLM's OpenAI-compatible serving docs — for people and for the AI tools reading alongside them."
+  primaryLabel="Get started"
+  primaryHref="/quickstart"
+  secondaryLabel="Serve an OpenAI-compatible endpoint"
+  secondaryHref="/guides/serve-openai-endpoint"
+/>
+
+<Note type="info" title="Unofficial community migration">
+  This site is an independent, community-run migration of a subset of
+  [vLLM](https://github.com/vllm-project/vllm)'s documentation onto the
+  [Thally](https://thally.io) platform. It is **not** affiliated with, endorsed
+  by, or maintained by the vLLM project or the PyTorch Foundation. For
+  authoritative, complete, and current documentation, use
+  [docs.vllm.ai](https://docs.vllm.ai).
+</Note>
+
+## Start here
+
+<CardGroup cols="2">
+  <Card title="Quickstart" icon="party-horn" href="/quickstart">
+    Install vLLM and launch your first `vllm serve` command in a few minutes.
+  </Card>
+  <Card title="Serve an OpenAI-compatible endpoint" icon="code-simple" href="/guides/serve-openai-endpoint">
+    Stand up the OpenAI-compatible server and call it with curl or the OpenAI Python client.
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/troubleshooting">
+    Diagnose out-of-memory errors, hangs, and unsupported-model failures.
+  </Card>
+  <Card title="API reference" icon="grid-round" href="/api">
+    Browse the OpenAI-compatible endpoints — chat completions, completions, embeddings, and models.
+  </Card>
+</CardGroup>
+
+## Reference material
+
+<CardGroup cols="2">
+  <Card title="Engine arguments" href="/reference/engine-args">
+    The most commonly used `EngineArgs` flags: memory, parallelism, dtype, and quantization.
+  </Card>
+  <Card title="Server arguments" href="/reference/server-args">
+    How `vllm serve` CLI flags, YAML config files, and precedence work together.
+  </Card>
+  <Card title="Supported models" href="/reference/supported-models">
+    Model families vLLM supports natively, and how to check a specific model.
+  </Card>
+  <Card title="Quantization" href="/reference/quantization">
+    AWQ, GPTQ, FP8, GGUF, and BitsAndBytes — what each trades off and how to enable it.
+  </Card>
+</CardGroup>
+
+## Scale and deploy
+
+<CardGroup cols="2">
+  <Card title="Distributed serving" href="/guides/distributed-serving">
+    Tensor parallelism vs. pipeline parallelism, and when to combine them.
+  </Card>
+  <Card title="Docker & Kubernetes" href="/guides/docker-kubernetes">
+    Run the official `vllm/vllm-openai` image, then deploy it to a cluster.
+  </Card>
+  <Card title="FAQ" href="/faq">
+    Answers to the questions vLLM users ask most.
+  </Card>
+  <Card title="Changelog" href="/changelog">
+    What changed on this site, generated from vLLM's GitHub releases.
+  </Card>
+</CardGroup>
+
+## Why this site exists
+
+This is a Track 2 hackathon submission demonstrating agent-ready documentation:
+the same reviewed content is published as HTML, Markdown, JSON, JSON-LD, search,
+an agent discovery index, and a read-only MCP server — so both people and AI
+coding agents can find the same current answer. See the
+[serving guide](/guides/serve-openai-endpoint) for the page verified across
+every one of those surfaces.
+
+## License
+
+vLLM's documentation is licensed [Apache-2.0](https://github.com/vllm-project/vllm/blob/main/LICENSE)
+by the vLLM project (a PyTorch Foundation project). Pages on this site are
+adapted from that source under the same license; see each page for its origin.
+This site's own scaffolding is provided by the [Thally](https://thally.io) starter.

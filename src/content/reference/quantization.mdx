@@ -1,0 +1,64 @@
+---
+title: Quantization overview
+navTitle: Quantization
+description: The quantization methods vLLM supports, what each trades off, and how to enable one.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Quantization reference](https://docs.vllm.ai/en/latest/features/quantization/) (Apache-2.0).
+</Note>
+
+Quantization trades model precision for a smaller memory footprint, letting
+larger models fit on smaller or fewer GPUs. vLLM supports loading
+pre-quantized checkpoints and, for some methods, quantizing on the fly at
+load time.
+
+## Supported methods
+
+| Method | What it does |
+|---|---|
+| **AWQ** (AutoAWQ) | Activation-aware weight quantization; strong accuracy retention at 4-bit. |
+| **GPTQ** (GPTQModel) | Layer-wise post-training quantization, widely available as pre-quantized checkpoints. |
+| **FP8** (LLM Compressor, online) | 8-bit floating point for weights and/or activations (W8A8); quantize a BF16/FP16 checkpoint at load time without calibration data. |
+| **INT4 / INT8** (LLM Compressor) | Integer quantization via LLM Compressor, including W4A16 and W8A8 variants. |
+| **BitsAndBytes** | Multi-bit quantization commonly used for fine-tuned checkpoints. |
+| **GGUF** | The llama.cpp checkpoint format; broad hardware coverage including CPU. |
+| **TorchAO** | PyTorch's native quantization framework. |
+| **Quantized KV cache** | Quantizes the KV cache (typically to FP8) independently of the weights, to fit more tokens in memory. |
+
+Vendor-specific paths also exist: Intel Neural Compressor, NVIDIA Model
+Optimizer, and AMD Quark.
+
+## Hardware support
+
+| Method | Volta | Turing | Ampere | Ada | Hopper | AMD GPU | x86 CPU |
+|---|---|---|---|---|---|---|---|
+| AWQ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| GPTQ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| FP8 (W8A8) | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
+| BitsAndBytes | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| GGUF | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+
+## Enable quantization
+
+Pass `--quantization <method>` to [`vllm serve`](/reference/server-args) or
+`quantization=<method>` to the `LLM` class. If the checkpoint is already
+quantized, vLLM usually infers the method automatically and this flag is
+optional:
+
+```bash
+vllm serve TheBloke/Llama-2-7B-AWQ --quantization awq
+```
+
+For online FP8 quantization of an unquantized checkpoint:
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct --quantization fp8
+```
+
+<Tip>
+  Quantization is one of the fastest ways to resolve out-of-memory errors —
+  see [Troubleshooting](/troubleshooting#out-of-memory) — but always
+  benchmark accuracy on your own task before shipping a quantized model to
+  production.
+</Tip>

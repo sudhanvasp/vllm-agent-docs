@@ -1,0 +1,95 @@
+{
+  "theme": "default",
+  "appearance": {
+    "contentIcons": "accent"
+  },
+  "markdown": {
+    "enabled": true
+  },
+  "i18n": {
+    "defaultLocale": "en",
+    "locales": [
+      {
+        "code": "en",
+        "label": "English"
+      }
+    ]
+  },
+  "navbar": {
+    "primary": {
+      "label": "Get started",
+      "href": "/quickstart"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/sudhanvasp/vllm-agent-docs"
+    },
+    "links": [
+      {
+        "heading": "vLLM Agent Docs",
+        "items": [
+          { "label": "Quickstart", "href": "/quickstart" },
+          { "label": "Serve an OpenAI endpoint", "href": "/guides/serve-openai-endpoint" },
+          { "label": "Changelog", "href": "/changelog" }
+        ]
+      },
+      {
+        "heading": "Upstream project",
+        "items": [
+          { "label": "vLLM documentation", "href": "https://docs.vllm.ai" },
+          { "label": "vLLM on GitHub", "href": "https://github.com/vllm-project/vllm" },
+          { "label": "Apache-2.0 license", "href": "https://github.com/vllm-project/vllm/blob/main/LICENSE" }
+        ]
+      }
+    ]
+  },
+  "tabs": [
+    {
+      "tab": "Get started",
+      "groups": [
+        {
+          "group": "Get started",
+          "pages": ["introduction", "quickstart", "troubleshooting", "faq"]
+        },
+        {
+          "group": "Guides",
+          "pages": [
+            "guides/serve-openai-endpoint",
+            "guides/distributed-serving",
+            "guides/docker-kubernetes"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "Reference",
+      "groups": [
+        {
+          "group": "Configuration",
+          "pages": ["reference/engine-args", "reference/server-args"]
+        },
+        {
+          "group": "Models",
+          "pages": ["reference/supported-models", "reference/quantization"]
+        }
+      ]
+    },
+    {
+      "tab": "API Reference",
+      "groups": [
+        {
+          "group": "Overview",
+          "pages": ["api/introduction"]
+        }
+      ],
+      "api": {
+        "source": "openapi.yaml"
+      }
+    },
+    {
+      "tab": "Changelog",
+      "href": "/changelog"
+    }
+  ]
+}

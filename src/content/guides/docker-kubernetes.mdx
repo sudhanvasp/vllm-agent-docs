@@ -1,0 +1,142 @@
+---
+title: Docker & Kubernetes deployment
+navTitle: Docker & Kubernetes
+description: Run vLLM's official container image, then deploy it to a Kubernetes cluster.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [deployment documentation](https://docs.vllm.ai/en/stable/deployment/k8s/) (Apache-2.0).
+</Note>
+
+## Run with Docker
+
+vLLM publishes an official image, `vllm/vllm-openai`, that runs the
+OpenAI-compatible server out of the box:
+
+```bash
+docker run --runtime nvidia --gpus all \
+    -v ~/.cache/huggingface:/root/.cache/huggingface \
+    --env "HF_TOKEN=$HF_TOKEN" \
+    -p 8000:8000 \
+    --ipc=host \
+    vllm/vllm-openai:latest \
+    --model Qwen/Qwen3-0.6B
+```
+
+This mounts your Hugging Face cache so repeated runs skip re-downloading,
+passes your `HF_TOKEN` for gated models, exposes port `8000`, and enables
+`--ipc=host` so PyTorch's shared-memory tensor parallelism works correctly.
+
+To build the image from source instead:
+
+```bash
+DOCKER_BUILDKIT=1 docker build . \
+    --target vllm-openai \
+    --tag vllm/vllm-openai \
+    --file docker/Dockerfile
+```
+
+Add `--build-arg VLLM_USE_PRECOMPILED="1"` to use precompiled wheels and cut
+build time significantly.
+
+## Deploy to Kubernetes
+
+A minimal deployment needs a `PersistentVolumeClaim` for model storage, a
+`Secret` for your Hugging Face token, a `Deployment` running the container,
+and a `Service` to expose it.
+
+<Steps>
+  <Step title="Create storage for model weights">
+    ```yaml
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: mistral-7b
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: default
+    ```
+  </Step>
+  <Step title="Store your Hugging Face token">
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: hf-token-secret
+    type: Opaque
+    stringData:
+      token: "REPLACE_WITH_TOKEN"
+    ```
+  </Step>
+  <Step title="Deploy the server">
+    The essentials: the `vllm/vllm-openai:latest` image, a `command`
+    launching `vllm serve` with your model, a GPU resource request, and a
+    shared-memory volume:
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: mistral-7b
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: mistral-7b
+      template:
+        metadata:
+          labels:
+            app: mistral-7b
+        spec:
+          containers:
+            - name: vllm
+              image: vllm/vllm-openai:latest
+              command: ["vllm", "serve", "mistralai/Mistral-7B-Instruct-v0.3", "--trust-remote-code"]
+              resources:
+                limits:
+                  nvidia.com/gpu: "1"
+              volumeMounts:
+                - mountPath: /dev/shm
+                  name: shm
+          volumes:
+            - name: shm
+              emptyDir:
+                medium: Memory
+                sizeLimit: 2Gi
+    ```
+  </Step>
+  <Step title="Expose the service">
+    ```yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: mistral-7b
+    spec:
+      selector:
+        app: mistral-7b
+      ports:
+        - port: 80
+          targetPort: 8000
+      type: ClusterIP
+    ```
+  </Step>
+  <Step title="Verify">
+    From inside the cluster:
+
+    ```bash
+    curl http://mistral-7b.default.svc.cluster.local/v1/completions
+    ```
+  </Step>
+</Steps>
+
+## Scale beyond one pod
+
+For production traffic routing across multiple vLLM replicas, or
+multi-node deployments that need pipeline parallelism, see the vLLM
+production stack (a Helm chart) and [Distributed serving](/guides/distributed-serving)
+for how `--tensor-parallel-size` and `--pipeline-parallel-size` map onto a
+cluster's GPU topology.

@@ -1,0 +1,95 @@
+import path from 'node:path'
+import { loadSidebarCollections, loadDocEntries } from '@/data/docs'
+import { getContentSource } from '@/lib/content-source'
+import { parseFrontmatter } from '@/lib/frontmatter'
+import { resolveRequestSiteConfig } from '@/lib/site-config'
+
+const CONTENT_ROOT = 'src/content'
+
+async function readRawContent(pageId: string): Promise<string | null> {
+  const source = getContentSource()
+  const candidates = [
+    path.join(CONTENT_ROOT, `${pageId}.mdx`),
+    path.join(CONTENT_ROOT, `${pageId}/index.mdx`),
+  ]
+
+  for (const filePath of candidates) {
+    const file = await source.read(filePath)
+    if (file) {
+      const { content } = parseFrontmatter(file.content)
+      // Strip JSX component tags but keep their text content
+      return content
+        .replace(/<\/?(?:Steps|Step|Tabs|Tab|Note|Callout|CodeGroup|CardGroup|Card|Frame|Accordion|Columns|Tooltip|AgentPrompt)[^>]*>/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    }
+  }
+
+  return null
+}
+
+export async function GET(request: Request) {
+  // Under the assets ContentSource this route must render per request — the
+  // corpus below reflects published content, not the build. No-op by default.
+  const effectiveSite = await resolveRequestSiteConfig()
+  const baseUrl = new URL(request.url).origin
+
+  const entries = await loadDocEntries()
+  const collections = await loadSidebarCollections()
+
+  const lines: Array<string> = []
+
+  // Header
+  lines.push(`# ${effectiveSite.name} — Complete Documentation`)
+  lines.push('')
+  lines.push(`> ${effectiveSite.description}`)
+  lines.push('')
+  lines.push(`Source: ${baseUrl}`)
+  lines.push('')
+  lines.push('## Instructions for agents')
+  lines.push('')
+  lines.push(`- Use ${baseUrl}/llms.txt to inspect the page index before scanning this full corpus.`)
+  lines.push(`- Use ${baseUrl}/skill.md for retrieval rules and ${baseUrl}/AGENTS.md before editing.`)
+  lines.push(`- Use ${baseUrl}/api/mcp for read-only search and page tools.`)
+  lines.push('- Cite canonical page URLs, distinguish documented facts from inference, and state when the documentation does not support a claim.')
+  lines.push('')
+  lines.push('---')
+  lines.push('')
+
+  // Emit each doc page in sidebar order
+  for (const collection of collections) {
+    if (collection.href || collection.api) continue
+
+    for (const section of collection.sections) {
+      for (const item of section.items) {
+        const entry = entries.find((e) => e.href === item.href)
+        if (!entry) continue
+
+        const content = await readRawContent(entry.id)
+        if (!content) continue
+
+        lines.push(`# ${entry.title}`)
+        lines.push('')
+        if (entry.description) {
+          lines.push(`> ${entry.description}`)
+          lines.push('')
+        }
+        lines.push(`URL: ${baseUrl}${entry.href}`)
+        lines.push('')
+        lines.push(content)
+        lines.push('')
+        lines.push('---')
+        lines.push('')
+      }
+    }
+  }
+
+  const body = lines.join('\n')
+
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
+    },
+  })
+}

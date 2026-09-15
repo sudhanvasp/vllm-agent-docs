@@ -1,0 +1,63 @@
+---
+title: Distributed serving
+navTitle: Distributed serving
+description: Tensor parallelism vs. pipeline parallelism in vLLM, and when to combine them.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Parallelism and Scaling guide](https://docs.vllm.ai/en/stable/serving/parallelism_scaling/) (Apache-2.0).
+</Note>
+
+When a model doesn't fit in one GPU's memory, split it across GPUs with
+tensor parallelism, pipeline parallelism, or both.
+
+## Tensor parallelism
+
+Splits each model layer across GPUs within a node — every GPU computes a
+slice of every layer, communicating frequently. Use it when the model is too
+large for a single GPU but fits on a single node with multiple GPUs:
+
+```bash
+# 4 GPUs on one node
+vllm serve facebook/opt-13b --tensor-parallel-size 4
+```
+
+## Pipeline parallelism
+
+Splits the model along layer boundaries — each stage owns a contiguous
+block of layers and hands off activations to the next. Use it (usually
+combined with tensor parallelism) when the model doesn't fit on a single
+node:
+
+```bash
+# 8 GPUs on one node, split as 4-way tensor x 2-way pipeline
+vllm serve gpt2 --tensor-parallel-size 4 --pipeline-parallel-size 2
+```
+
+## Choosing sizes
+
+The common rule of thumb: set `--tensor-parallel-size` to the number of GPUs
+per node, and `--pipeline-parallel-size` to the number of nodes.
+
+```bash
+# 2 nodes, 8 GPUs each = 16 GPUs total
+vllm serve /path/to/model \
+    --tensor-parallel-size 8 \
+    --pipeline-parallel-size 2 \
+    --distributed-executor-backend ray
+```
+
+Multi-node deployments need the `ray` distributed executor backend; a
+single node can use vLLM's default multiprocessing backend.
+
+<Tip>
+  If your GPU count doesn't split evenly, or your nodes lack NVLink, favor
+  pipeline parallelism over tensor parallelism — it communicates less
+  and tolerates uneven splits better.
+</Tip>
+
+## Troubleshooting distributed startup
+
+NCCL errors during multi-GPU startup are common enough to have their own
+section in [Troubleshooting](/troubleshooting#nccl-errors-during-multi-gpu-setup) —
+check there first if `vllm serve` hangs or crashes with more than one GPU.

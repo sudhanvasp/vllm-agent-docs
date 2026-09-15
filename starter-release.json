@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "starterVersion": 2,
+  "repository": "thallylabs/starter",
+  "defaultBranch": "main",
+  "runtime": {
+    "repository": "thallylabs/thally",
+    "commitSha": "16323163609ddb3ecc0c14350905f4c576828ff2",
+    "treeSha": "30dab8718e502fe51bacc8c6fea61e6b286e2ba8"
+  },
+  "packages": {
+    "@thallylabs/core": "^0.2.4"
+  },
+  "ownership": {
+    "frameworkSyncEligible": [
+      "BUILD-WARNINGS.md",
+      "src/app/**",
+      "src/cloud/**",
+      "src/components/**",
+      "src/config/**",
+      "src/data/api-reference.ts",
+      "src/data/docs.ts",
+      "src/data/get-doc.ts",
+      "src/lib/**",
+      "src/mdx/rehype.ts",
+      "src/mdx/rehype.test.ts",
+      "src/mdx/remark.ts",
+      "src/mdx/snippet-registry.ts",
+      "src/styles/**",
+      "src/test/**",
+      "src/middleware.ts",
+      "mdx-components.tsx",
+      "tailwind.config.ts",
+      "starter-release.json",
+      "scripts/agent-readiness.ts",
+      "scripts/build-cloudflare.mts",
+      "scripts/build-embeddings.ts",
+      "scripts/build-runtime-sources.mts",
+      "scripts/lib/**",
+      "scripts/check-cloudflare-worker-size.mts",
+      "scripts/smoke-cloudflare.mts"
+    ],
+    "userOwnedNeverOverwrite": [
+      "src/content/**",
+      "docs.json",
+      "src/data/site.ts",
+      "src/mdx/custom-components.tsx",
+      "snippets/**",
+      "public/**",
+      "openapi.yaml",
+      "README.md",
+      "AGENTS.md",
+      "LICENSE",
+      ".env*",
+      ".github/**",
+      "open-next.config.ts",
+      "wrangler.jsonc"
+    ],
+    "manualReview": [
+      "package.json",
+      "package-lock.json",
+      ".gitignore",
+      "eslint.config.mjs",
+      "lighthouserc.json",
+      "next.config.ts",
+      "postcss.config.mjs",
+      "tsconfig.json",
+      "vitest.config.ts"
+    ]
+  }
+}

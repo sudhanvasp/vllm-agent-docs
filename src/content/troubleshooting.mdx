@@ -1,0 +1,94 @@
+---
+title: Troubleshooting
+description: Diagnose the most common vLLM failures — out-of-memory errors, hangs, NCCL errors, and unsupported models.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Troubleshooting guide](https://docs.vllm.ai/en/latest/usage/troubleshooting/) (Apache-2.0).
+</Note>
+
+Work through the issue that matches your symptom, then enable debug logging
+if you still can't tell what's wrong.
+
+## Out of memory
+
+If `vllm serve` or `LLM(...)` raises an out-of-memory error, the model and its
+KV cache don't fit in available GPU memory. Reduce memory consumption with
+one or more of:
+
+- Lower `--gpu-memory-utilization` (default `0.92`) if other processes share the GPU
+- Lower `--max-model-len` to shrink the KV cache
+- Reduce `--max-num-seqs` to cap concurrent sequences
+- Apply [quantization](/reference/quantization) to shrink model weights
+- Add more GPUs with [tensor parallelism](/guides/distributed-serving)
+
+## The server hangs or the model download is slow
+
+Downloads depend on your connection to Hugging Face. Pre-download the model
+and point vLLM at the local path instead of downloading at startup:
+
+```bash
+huggingface-cli download Qwen/Qwen2.5-1.5B-Instruct
+vllm serve /root/.cache/huggingface/hub/models--Qwen--Qwen2.5-1.5B-Instruct/snapshots/<hash>
+```
+
+Also store models on local disk rather than a network filesystem — network
+storage is a common, hard-to-diagnose source of slow loading.
+
+## NCCL errors during multi-GPU setup
+
+`NCCL error: unhandled system error during ncclCommInitRank` usually means a
+missing `IPC_LOCK` capability, or `/dev/shm` not mounted large enough for
+inter-process communication. If you're using GPUDirect RDMA, follow the
+platform-specific GPUDirect configuration for your environment. See
+[Distributed serving](/guides/distributed-serving) for the tensor/pipeline
+parallel flags that trigger this path.
+
+## "Model architectures [...] are not supported"
+
+This error usually means vLLM couldn't resolve the model's architecture from
+its Hugging Face `config.json`, not that the model is truly unsupported.
+Check [Supported models](/reference/supported-models) for how to confirm
+support, and try specifying `--trust-remote-code` if the model ships custom
+modeling code.
+
+## `torch.compile` failures
+
+Version mismatches between `torch.compile`, Triton, and PyTorch can crash the
+server on startup. Isolate the problem with a minimal repro:
+
+```bash
+python -c "import torch; \
+@torch.compile \
+def f(x): return (x + 1) * 2; \
+print(f(torch.randn(4, 4).cuda()))"
+```
+
+If this fails outside of vLLM, the issue is your PyTorch/Triton
+installation, not vLLM. As a workaround, start the server with
+`--enforce-eager` to disable `torch.compile` and CUDA graphs.
+
+## Enable debug logging
+
+When a hang or crash doesn't match any of the above, turn on verbose
+diagnostics before reproducing it:
+
+```bash
+export VLLM_LOGGING_LEVEL=DEBUG      # Verbose logging
+export VLLM_LOG_STATS_INTERVAL=1     # Frequent statistics
+export CUDA_LAUNCH_BLOCKING=1        # Identify the failing CUDA kernel
+export NCCL_DEBUG=TRACE              # NCCL communication details
+export VLLM_TRACE_FUNCTION=1         # Record every function call (~100x slowdown)
+```
+
+<Tip>
+  Unset these (or start a fresh shell) once you're done — `VLLM_TRACE_FUNCTION`
+  in particular has a significant performance cost and is meant only for
+  isolating a specific hang.
+</Tip>
+
+## Still stuck
+
+Search [existing GitHub issues](https://github.com/vllm-project/vllm/issues)
+before filing a new one, and include your debug logs, exact `vllm serve`
+command, and GPU/driver versions.

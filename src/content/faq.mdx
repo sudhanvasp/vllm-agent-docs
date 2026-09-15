@@ -1,0 +1,58 @@
+---
+title: FAQ
+description: Answers to the questions vLLM users ask most.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Frequently Asked Questions](https://docs.vllm.ai/en/latest/usage/faq/) (Apache-2.0).
+</Note>
+
+## Serving and models
+
+<Accordion title="Can I serve multiple models on a single port with the OpenAI-compatible API?">
+  Not directly. Run one server instance per model, each on its own port, and
+  put a routing layer (a reverse proxy or load balancer) in front that sends
+  each request to the right instance based on the `"model"` field.
+</Accordion>
+
+<Accordion title="Which model should I use for offline embedding inference?">
+  Models trained specifically for embeddings, such as `e5-mistral-7b-instruct`
+  or `BAAI/bge-base-en-v1.5` — see [Supported models](/reference/supported-models)
+  for the full pooling-model list. vLLM can also convert a text-generation
+  model like Llama-3-8B into an embedding model by extracting hidden states,
+  but expect that path to underperform a model purpose-trained for embeddings.
+</Accordion>
+
+<Accordion title="What's the difference between vllm serve and the LLM class?">
+  `vllm serve` starts the [OpenAI-compatible HTTP server](/guides/serve-openai-endpoint)
+  for online serving. The `LLM` class runs the same engine in-process for
+  offline batch inference from Python, without an HTTP layer. Both accept the
+  same [engine arguments](/reference/engine-args).
+</Accordion>
+
+## Output behavior
+
+<Accordion title="Can the output for the same prompt vary across runs?">
+  Yes. vLLM does not guarantee stable log probabilities (logprobs) for output
+  tokens. Variation comes from numerical instability in Torch operations and
+  from non-deterministic batching — the batch a request lands in can change
+  run to run, which shifts floating-point rounding enough to occasionally
+  flip a token selection. To reduce variance: use `float32` (at the cost of
+  more memory), prefer `float16` over `bfloat16`, or set an explicit sampling
+  seed on requests with `temperature > 0`.
+</Accordion>
+
+## Memory and storage
+
+<Accordion title="I'm hitting an out-of-memory error — where do I start?">
+  See the dedicated [out-of-memory section](/troubleshooting#out-of-memory)
+  in Troubleshooting: lower `--gpu-memory-utilization` or `--max-model-len`,
+  or apply [quantization](/reference/quantization).
+</Accordion>
+
+<Accordion title="Where does vLLM download and cache models?">
+  By default, vLLM uses the standard Hugging Face cache
+  (`~/.cache/huggingface`). Override it with `--download-dir`, or
+  pre-download with `huggingface-cli download` and pass the local path
+  directly to `vllm serve` — see [Troubleshooting](/troubleshooting#the-server-hangs-or-the-model-download-is-slow).
+</Accordion>

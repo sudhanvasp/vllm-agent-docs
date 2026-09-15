@@ -1,0 +1,79 @@
+---
+title: Quickstart
+description: Install vLLM and serve your first model with one command.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Quickstart guide](https://docs.vllm.ai/en/latest/getting_started/quickstart.html) (Apache-2.0).
+</Note>
+
+vLLM installs with `pip` (or `uv`, the faster alternative) and serves a model
+from a single command. This page gets you from nothing to a running,
+OpenAI-compatible endpoint.
+
+## Before you begin
+
+- A Linux machine with an NVIDIA GPU (vLLM also supports CPU, AMD, and other
+  backends — see [supported models](/reference/supported-models) for backend notes)
+- Python 3.9–3.12
+- Enough disk space to download a model from Hugging Face
+
+<Steps>
+  <Step title="Install vLLM">
+    The recommended path uses [`uv`](https://docs.astral.sh/uv/), a fast Python
+    environment manager:
+
+    ```bash
+    uv venv --python 3.12 --seed
+    source .venv/bin/activate
+    uv pip install vllm --torch-backend=auto
+    ```
+
+    Prefer conda? This works too:
+
+    ```bash
+    conda create -n myenv python=3.12 -y
+    conda activate myenv
+    pip install --upgrade uv
+    uv pip install vllm --torch-backend=auto
+    ```
+  </Step>
+  <Step title="Start the server">
+    Launch vLLM with a small model to confirm everything works:
+
+    ```bash
+    vllm serve Qwen/Qwen2.5-1.5B-Instruct
+    ```
+
+    The OpenAI-compatible server starts at `http://localhost:8000` by default.
+    The first run downloads the model from Hugging Face, so it can take a few
+    minutes depending on your connection.
+  </Step>
+  <Step title="Send a completion request">
+    In a second terminal, call the completions endpoint:
+
+    ```bash
+    curl http://localhost:8000/v1/completions \
+        -H "Content-Type: application/json" \
+        -d '{
+            "model": "Qwen/Qwen2.5-1.5B-Instruct",
+            "prompt": "San Francisco is a",
+            "max_tokens": 7,
+            "temperature": 0
+        }'
+    ```
+  </Step>
+  <Step title="Verify the result">
+    You should see a JSON response with a `choices[0].text` completion
+    continuing the prompt. If the request hangs or errors, check
+    [Troubleshooting](/troubleshooting) — the most common cause at this stage
+    is the model still downloading, or insufficient GPU memory.
+  </Step>
+</Steps>
+
+## Choose the next task
+
+Now that the server runs, go deeper on the API it exposes in
+[Serve an OpenAI-compatible endpoint](/guides/serve-openai-endpoint), which
+covers the chat completions endpoint and both the curl and Python OpenAI
+client paths.

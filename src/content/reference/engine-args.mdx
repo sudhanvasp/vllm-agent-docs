@@ -1,0 +1,54 @@
+---
+title: Engine arguments
+navTitle: Engine arguments
+description: The engine arguments that control how vLLM loads, batches, and parallelizes a model.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Engine Arguments reference](https://docs.vllm.ai/en/latest/configuration/engine_args/) (Apache-2.0).
+</Note>
+
+Engine arguments configure the `LLM` class for offline inference and, for
+online serving, are passed as flags to [`vllm serve`](/reference/server-args).
+`EngineArgs` and `AsyncEngineArgs` combine the configuration classes defined
+in `vllm.config` — those classes are the source of truth for the complete set
+of types, defaults, and docstrings; this page covers the ones you'll reach
+for most often.
+
+## Most commonly used arguments
+
+| Argument | Default | Description |
+|---|---|---|
+| `--model` | *(required)* | Name or path of the Hugging Face model to use. |
+| `--tensor-parallel-size` | `1` | Number of tensor-parallel groups for distributed execution — see [Distributed serving](/guides/distributed-serving). |
+| `--pipeline-parallel-size` | `1` | Number of pipeline-parallel groups. |
+| `--max-model-len` | Auto-derived | Model context length (prompt + output). Accepts `k`/`m`/`g` suffixes. |
+| `--gpu-memory-utilization` | `0.92` | Fraction of GPU memory reserved for the model executor, `0`–`1`. |
+| `--dtype` | `auto` | Data type for weights and activations: `auto`, `float16`, `bfloat16`, or `float32`. |
+| `--quantization` | *(none)* | Weight quantization method — see [Quantization](/reference/quantization). Inferred from the model config if unset. |
+| `--kv-cache-dtype` | `auto` | Data type for the KV cache: `auto`, `float16`, `bfloat16`, or `fp8`. |
+| `--max-num-seqs` | Model-dependent | Maximum number of sequences processed in a single iteration. |
+| `--max-num-batched-tokens` | Model-dependent | Maximum tokens processed in a single iteration. |
+| `--enable-prefix-caching` | `False` | Reuse KV cache across requests that share a prompt prefix. |
+| `--enable-chunked-prefill` | Model-dependent | Chunk long prefills so they interleave with ongoing decodes. |
+| `--enforce-eager` | `False` | Disable CUDA graphs and `torch.compile`; useful when debugging crashes (see [Troubleshooting](/troubleshooting)). |
+| `--trust-remote-code` | `False` | Allow executing custom modeling code shipped with a Hugging Face model. |
+| `--load-format` | `auto` | Weight loading format: `auto`, `pt`, or `safetensors`. |
+| `--download-dir` | HF cache | Directory to download and load weights from. |
+| `--seed` | `0` | Random seed for reproducible sampling. |
+
+## Configuration precedence
+
+vLLM resolves configuration in three levels, from highest to lowest priority:
+
+1. Request parameters and input arguments
+2. Engine arguments (this page)
+3. Environment variables
+
+## Reduce memory pressure
+
+If you're hitting out-of-memory errors, the arguments most worth tuning
+first are `--gpu-memory-utilization`, `--max-model-len`, and `--max-num-seqs`,
+followed by [quantization](/reference/quantization) if you still need more
+headroom. See [Troubleshooting](/troubleshooting#out-of-memory) for the full
+checklist.

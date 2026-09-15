@@ -1,0 +1,61 @@
+---
+title: Supported models
+navTitle: Supported models
+description: Model families vLLM supports natively, and how to check whether a specific model works.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Supported Models reference](https://docs.vllm.ai/en/latest/models/supported_models/) (Apache-2.0).
+</Note>
+
+vLLM natively implements over 100 model architectures, and supports hundreds
+more through the Transformers modeling backend as a fallback. Models fall
+into three categories:
+
+- **Text-only generative models** — standard causal language models
+- **Multimodal generative models** — text combined with image, video, and/or audio input
+- **Pooling models** — embedding, reranking, and classification models
+
+## Popular supported families
+
+- Llama (Llama 2, Llama 3.x)
+- Qwen (Qwen2, Qwen3, QwQ)
+- Mistral / Mixtral
+- DeepSeek (V2, V3, and newer)
+- Gemma
+- Phi
+- Falcon
+- InternLM
+- ChatGLM
+- Jamba
+- Baichuan
+- OPT
+
+This list is representative, not exhaustive — check a specific model with
+one of the methods below rather than assuming absence from this list means
+it's unsupported.
+
+## Check whether a model is supported
+
+**Fastest: read the model's `config.json`.** Open the model's page on
+Hugging Face Hub and check the `"architectures"` field. If it matches an
+architecture vLLM implements, it's natively supported.
+
+**Authoritative: try loading it.**
+
+```python
+from vllm import LLM
+llm = LLM(model="your-org/your-model", runner="generate")
+output = llm.generate("Hello, my name is")
+```
+
+If the architecture isn't recognized, vLLM raises
+`Model architectures [...] are not supported` at load time — see
+[Troubleshooting](/troubleshooting#model-architectures-are-not-supported)
+if you hit this on a model you believe should work.
+
+## Custom or gated models
+
+Models that ship custom modeling code on the Hub need
+`--trust-remote-code` passed to [`vllm serve`](/reference/server-args).
+Gated models need a Hugging Face token with access, set via `HF_TOKEN`.

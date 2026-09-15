@@ -1,0 +1,66 @@
+---
+title: Server arguments
+navTitle: Server arguments
+description: How vllm serve CLI flags, YAML config files, and precedence work together.
+---
+
+<Note type="info" title="Source">
+  Adapted from vLLM's [Server Arguments reference](https://docs.vllm.ai/en/latest/configuration/serve_args/) (Apache-2.0).
+</Note>
+
+`vllm serve` launches the OpenAI-compatible server. The model is passed as a
+positional argument; every [engine argument](/reference/engine-args) is also
+a valid `vllm serve` flag, alongside server-specific flags like `--host` and
+`--port`.
+
+## Basic usage
+
+```bash
+vllm serve meta-llama/Llama-3.1-8B-Instruct
+```
+
+## Load arguments from a YAML file
+
+For long argument lists, load them from a config file instead of the command
+line. Argument names in the file must use the long form:
+
+```bash
+vllm serve --config config.yaml
+```
+
+```yaml
+# config.yaml
+model: meta-llama/Llama-3.1-8B-Instruct
+host: "127.0.0.1"
+port: 8000
+uvicorn-log-level: "info"
+```
+
+## Precedence
+
+When the same argument is set in more than one place, the command line wins:
+
+1. Command-line flags (highest priority)
+2. Config file values
+3. Built-in defaults (lowest priority)
+
+```bash
+# The command-line model overrides config.yaml's model field.
+vllm serve SOME_OTHER_MODEL --config config.yaml
+```
+
+## Frequently used server flags
+
+| Flag | Description |
+|---|---|
+| `--host` | Bind address. Defaults to all interfaces. |
+| `--port` | Bind port. Defaults to `8000`. |
+| `--api-key` | Require this bearer token on every request. |
+| `--served-model-name` | Override the model name clients must send in `"model"`. |
+| `--uvicorn-log-level` | Log verbosity for the underlying Uvicorn server. |
+| `--tool-call-parser` | Select the parser for a model's function/tool-call output format. |
+| `--chat-template` | Override the model's default Jinja chat template. |
+
+For the full flag list, run `vllm serve --help` against your installed
+version — flags are added frequently as vLLM adds features, and `--help`
+always matches what's actually installed.
