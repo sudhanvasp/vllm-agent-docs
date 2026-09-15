@@ -82,6 +82,66 @@ coding agents can find the same current answer. See the
 [serving guide](/guides/serve-openai-endpoint) for the page verified across
 every one of those surfaces.
 
+## Hackathon reflection
+
+<Note type="info" title="Disclosure">
+  Built with [Claude Sonnet 5](https://claude.com/claude-code) as a build
+  partner throughout — content migration, verification, and this reflection
+  were drafted with its help.
+</Note>
+
+### What did you accomplish?
+
+Migrated 12 scoped pages of vLLM's OpenAI-serving docs (Apache-2.0) onto
+Thally, replacing all starter boilerplate: quickstart, a showcase "serve an
+OpenAI-compatible endpoint" guide, troubleshooting, a generated changelog, a
+scoped OpenAPI reference, engine/server args, supported models,
+quantization, distributed serving, Docker/K8s, and FAQ. Pushed to GitHub and
+connected to Thally Cloud on a custom domain, with an agent-readiness fix
+applied and verified along the way.
+
+### When did Thally first become useful?
+
+Running `npm run check:agents` and getting back a numeric score with
+per-signal subscores and a named offender (`/faq` — no headings) instead of
+generic "improve your docs" advice. That's the moment it stopped feeling
+like a docs template and started acting like a linter for agent-readiness —
+fix the thing it named, rerun, confirm the number moved.
+
+### What took more manual work than expected?
+
+Custom-domain hosting could be smoother — connecting an existing GitHub repo
+to Thally Cloud and pointing a Cloudflare-managed subdomain at it is a
+web-dashboard, credential-gated flow with no CLI shortcut, so it took more
+manual back-and-forth than the rest of the build.
+
+### What result did you trust least?
+
+The agent-readiness score jump itself (99 → 100). A single number
+summarizing "is this agent-ready" is easy to satisfy on paper — add a
+heading — without confirming an agent actually benefits from the change.
+
+### How did you verify that result?
+
+Didn't take the score's word for it: independently curled every surface the
+showcase page claims to support (HTML, `.md`, the JSON API, embedded
+JSON-LD, `/llms.txt` and `/api/docs-index`), then registered a real local
+MCP server, called `tools/list` and `read_page` over JSON-RPC, and diffed
+what came back against the Markdown mirror by hand. Also ran
+`thally check --drift`, which independently caught a real broken anchor
+link I hadn't been looking for — a better trust signal than the score alone.
+
+### Would you use Thally for your next real release? Why or why not?
+
+Yes, conditionally. The core value — one MDX source publishing consistently
+to HTML, Markdown, JSON, JSON-LD, search, and MCP with no extra plumbing —
+genuinely worked and removes a whole class of "the docs bot's answer
+drifted from the docs page" bugs. The caveats are real, though: the Windows
+CLI has a rough edge (a subprocess-spawn bug when Node lives under a path
+with a space), and the readiness score is a fast lint, not a substitute for
+someone — or some agent — actually trying to use the docs, which is what
+caught the things the score missed.
+
 ## License
 
 vLLM's documentation is licensed [Apache-2.0](https://github.com/vllm-project/vllm/blob/main/LICENSE)
